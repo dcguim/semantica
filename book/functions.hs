@@ -73,14 +73,6 @@ initials firstn lastn = [f] ++ ". " ++ [l] ++ "."
 -- It is necessary bracket those characters in order to use
 -- them in the (++) function.
 
--- Let`s use the concept of bmi to take a list of weight and height
--- and return a list of bmis
-calcBmis:: (RealFloat a) => [(a,a)] -> [a]
-calcBmis xs = [bmi w h | (w,h) <- xs ]
-  where bmi weight height = weight / height ^ 2
--- Why when I change RealFloat to Float haskell outputs a:
--- > "‘Float’ is applied to too many type arguments"
-
 -- Let, just like an if statement, "you can cram in almost anywhere".
 ifgive42 = 4 * (if 10 > 5 then 10 else 5) + 2
 letgive42 = 4 * (let a = 9 in a + 1) + 2
@@ -90,4 +82,21 @@ retlist5 = [let square x = x*x; root x = sqrt x in (square 5, root 25)]
 -- or for dismantling a tuple into components:
 dismantuple = (let (a,b,c) = (1,2,3) in a+b+c)* 100
 
--- Now we can go back to the bmi concept to 
+-- Let`s use the concept of bmi to take a list of weight and height
+-- and return a list of bmis
+calcBmis:: (RealFloat a) => [(a,a)] -> [a]
+calcBmis xs = [bmi w h | (w,h) <- xs ]
+  where bmi weight height = weight / height ^ 2
+-- Why when I change RealFloat to Float haskell outputs a:
+--  "‘Float’ is applied to too many type arguments"
+-- Using let we could define bmi inside a list comprehension
+-- as we would a predicate.
+calcBmis' :: (RealFloat a) => [(a, a)] -> [a]
+calcBmis' xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2, bmi > 20.0]
+
+-- How to use pattern matching while using concatenation function (++).
+-- obs: Need to study how the concatenation function works !!
+describeList :: [a] -> String  
+describeList xs = "The list is " ++ case xs of [] -> "empty."  
+                                               [x] -> "a singleton list."   
+                                               xs -> "a longer list."  
