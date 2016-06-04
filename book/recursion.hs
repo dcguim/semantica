@@ -88,5 +88,7 @@ qks [] = []
 qks (x:xs) =
   let smallerSorted = qks [a | a <- xs, a <= x]  
       biggerSorted = qks [a | a <- xs, a > x]  
-  in  smallerSorted ++ [x] ++ biggerSorted  
+  in  smallerSorted ++ [x] ++ biggerSorted
+
+
         
