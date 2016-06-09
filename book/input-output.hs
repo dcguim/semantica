@@ -33,13 +33,51 @@
 -- An I/O action is also performed when you type out
 -- an I/O action in GHCI and press ENTER.
 
-import Data.Char  
+-- import Data.Char  
       
-main = do  
-  putStrLn "What's your first name?"  
-  firstName <- getLine  
-  putStrLn "What's your last name?"  
-  lastName <- getLine  
-  let bigFirstName = map toUpper firstName  
-      bigLastName = map toUpper lastName  
-  putStrLn $ "hey " ++ bigFirstName ++ " " ++ bigLastName ++ ", how are you?"  
+-- main = do  
+--  putStrLn "What's your first name?"  
+--  firstName <- getLine  
+--  putStrLn "What's your last name?"  
+--  lastName <- getLine  
+--  let bigFirstName = map toUpper firstName  
+--      bigLastName = map toUpper lastName  
+--  putStrLn $ "hey " ++ bigFirstName ++ " " ++ bigLastName ++ ", how are you?"  
+
+-- It must be said that the "<-" is normally
+-- used to map I/O action to names such as
+-- in: firstName <- getLine. But when we need
+-- to bind pure expressions to names we use let
+-- as: let firstName = map toUpper firstName.
+
+main = do
+  line <- getLine
+  if null line
+     then return ()
+    else (do
+          putStrLn $ reverseWords line
+          main)
+    
+reverseWords :: String -> String
+reverseWords = unwords . map reverse . words
+
+-- Three important points must be made about I/O actions:
+
+-- 1) "return" and "<-" act as opposites,
+-- "return" takes a value and wraps in a
+-- box, while "<-" takes a value box
+-- from a box and binds to a name.
+-- obs: the "return" doesnt end the execution
+-- of a program or anything like that.
+
+-- 2) The else do block is one I/O action
+-- that is why it is important to be idented
+-- correctly or limited by the parethesis.
+-- obs main which is an I/O action is called 
+-- recursively at the end of the block.
+
+-- 3) When dealing with I/O do blocks, "return"
+-- is normally used either because its necessary
+-- to create an I/O action that doesn`t do anything
+-- or when its necessary to return the return a value
+-- of a do block which is not the last action.
