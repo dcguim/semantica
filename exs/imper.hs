@@ -62,6 +62,7 @@ data Cmd = CmdAsg Var Exp            -- assignment (var = exp)
          | CmdSkip                   -- do nothing                        
          | CmdRepeat Exp Exp                                        
        	 | CmdSeqs [Cmd]
+         | CmdRepeatUntil Cmd Exp
 
 evalCmd :: Cmd -> Mem -> Mem                                              
                                                                           
@@ -73,20 +74,30 @@ evalCmd (CmdIf e ct ce) m =
   if isTrue(evalExp e m)                                                  
     then (evalCmd ct m) else (evalCmd ce m)                               
 
-evalCmd (CmdAsg v e) m = udate v (evalExp e m) m                         
+evalCmd (CmdAsg v e) m = update v (evalExp e m) m                         
                                                                           
 evalCmd (CmdWhile e c) m = w m                                            
   where w = \m -> (if isTrue(evalExp e m) then w (evalCmd c m) else m)    
+-- update the value of a variable in a memory                             
+-- update :: Var -> Value -> Mem -> Mem                                      
 
-evalCmd (CmdSeqs l) m =
-         if isTrue (l ==[]) then (CmdSkip m)
-         else (evalCmd CmdSeqs xs (evalCmd (take 1 l) m)
 
-evalCmd (CmdRepeat n u) m =
-	(if isTrue((evalExp u m) <= 0)) then m
-	else let m' = evalExp n m
-	     	 m'' = evalExp (ExpSub u (ExpK 1)) m'
-             	 in evalCmd (CmdRepeat n) m''
+evalCmd (CmdSeqs []) m = m
+evalCmd (CmdSeqs (x:xs)) m =
+  evalCmd (CmdSeqs xs) (evalCmd x m) 
+
+evalCmd (CmdRepeatUntil cmd e) m = 
+  let m' = (evalCmd cmd m)
+      in if (isTrue(evalExp e m')) then m'
+         else evalCmd (CmdRepeatUntil cmd e) m'                               
+                                        
+    
+
+-- evalCmd (CmdRepeat n u) m =
+-- 	if (isTrue(evalExp u m) <= 0) then m
+-- 	else let m' = (evalExp n m)
+-- 	     	 m'' = evalExp (ExpSub u (ExpK 1)) m'
+--              	 in evalCmd (CmdRepeat n) m''
                                                                            
                                                                           
 -------------------------------------------------------------------       
@@ -94,10 +105,28 @@ evalCmd (CmdRepeat n u) m =
 -- example                                                                
                                                                           
 --y = 10; x = 1; while y do  x = x * y; y = y - 1                        
---cmd1 = CmdSeqs [(CmdSkip) 
---               (CmdAsg "y" (ExpK 10))]
+--cmd1 = CmdSeqs [(CmdSkip),
+--                (CmdAsg "y" (ExpK 10))]
 
-cmd2 = CmdRepeat (ExpK 7) (ExpK 9)
+-- cmd2 = (CmdAsg "y"(CmdRepeatUntil  
+--        	       	   (CmdSeq (CmdAsg "x" (ExpMul (ExpVar "x") (ExpVar "y")))
+--                            (CmdAsg "y" (ExpSub (ExpVar "y") (ExpK 1))))
+-- 			   (ExpVar "y"))
+
+cmd2 = (CmdSeq 
+	(CmdSeq (CmdAsg "y" (ExpK 0)) (CmdAsg "x" (ExpK 3)))
+	(CmdRepeatUntil cmd (ExpVar "y"))
+	)
+       where cmd = (CmdIf (ExpVar "x")
+			  (CmdAsg "x" (ExpSub (ExpVar "x") (ExpK 1)))
+			  (CmdAsg "y" (ExpK 1)))
+
+                                                                          
+--cmd3 = CmdSeq (CmdSeq (CmdAsg "y" (ExpK 10))                              
+--                      (CmdAsg "x" (ExpK 1)))                              
+--              (CmdWhile (ExpVar "y")                                      
+--                        (CmdSeq (CmdAsg "x" (ExpMul (ExpVar "x") (ExpVar "y")))
+--                                (CmdAsg "y" (ExpSub (ExpVar "y") (ExpK 1)))))
                                                                           
 -------------------------------------------------------------------       
 -- code to show the final value of "x" after running "cmd1" on            
