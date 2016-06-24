@@ -78,6 +78,7 @@ evalCmd (CmdAsg v e) m = update v (evalExp e m) m
                                                                           
 evalCmd (CmdWhile e c) m = w m                                            
   where w = \m -> (if isTrue(evalExp e m) then w (evalCmd c m) else m)    
+
 -- update the value of a variable in a memory                             
 -- update :: Var -> Value -> Mem -> Mem                                      
 
@@ -115,9 +116,8 @@ evalCmd (CmdRepeatUntil cmd e) m =
 
 cmd2 = (CmdSeq 
 	(CmdSeq (CmdAsg "y" (ExpK 0)) (CmdAsg "x" (ExpK 3)))
-	(CmdRepeatUntil cmd (ExpVar "y"))
-	)
-       where cmd = (CmdIf (ExpVar "x")
+	(CmdRepeatUntil cmd (ExpVar "y")))
+	where cmd = (CmdIf (ExpVar "x")
 			  (CmdAsg "x" (ExpSub (ExpVar "x") (ExpK 1)))
 			  (CmdAsg "y" (ExpK 1)))
 
